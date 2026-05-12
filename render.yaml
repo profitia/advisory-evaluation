@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: advisory-evaluation
+    runtime: node
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma db push && npm run start
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        sync: false          # wklej Neon connection string w Render dashboard
+      - key: OPENAI_API_KEY
+        sync: false          # wklej klucz OpenAI w Render dashboard
+      - key: ADMIN_TOKEN
+        sync: false          # wymyśl silne hasło (min. 16 znaków)
+      - key: NODE_VERSION
+        value: "20"
