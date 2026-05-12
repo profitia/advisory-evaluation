@@ -22,7 +22,11 @@ body {
 }
 
 /* Dynamic placeholder fade-in animation */
-@keyframes placeholderFadeIn {
+/* iOS momentum scrolling for panels */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
   from { opacity: 0; transform: translateY(3px); }
   to   { opacity: 1; transform: translateY(0); }
 }

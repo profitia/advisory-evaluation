@@ -158,7 +158,7 @@ export default function FeedbackPanel({ messageId, locale, onSubmitted }: Props)
                 value={text[key] ?? ""}
                 onChange={(e) => setText_(key, e.target.value)}
                 rows={isLarge ? 3 : 2}
-                className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 placeholder-gray-300 resize-none outline-none focus:border-profitia-blue transition-colors"
+              className="w-full text-[16px] md:text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 placeholder-gray-300 resize-none outline-none focus:border-profitia-blue transition-colors"
                 placeholder={locale === "pl" ? "Opcjonalnie..." : "Optional..."}
               />
             </div>
