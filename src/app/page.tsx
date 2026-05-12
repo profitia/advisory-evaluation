@@ -326,8 +326,8 @@ export default function EvaluationPage() {
           <div className="text-center py-2 bg-blue-50 border-b border-blue-100 shrink-0">
             <p className="text-xs text-blue-600">
               {locale === "pl"
-                ? "Nowa sesja — Polski Advisory. Poprzedni transcript zapisany."
-                : "New session — English Advisory. Previous transcript saved."}
+                ? "Nowa sesja - Polski Advisory. Poprzedni transcript zapisany."
+                : "New session - English Advisory. Previous transcript saved."}
             </p>
           </div>
         )}

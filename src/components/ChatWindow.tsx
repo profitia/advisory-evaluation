@@ -27,17 +27,17 @@ const EMPTY_STATE = {
       "Dostawca grozi zerwaniem kontraktu",
       "Jak zbudować should-cost dla komponentów mechanicznych?",
       "Zarząd chce ograniczyć liczbę dostawców o 30%",
-      "Negocjuję z monopolistą — co mam do czynienia?",
+      "Negocjuję z monopolistą - co mam do czynienia?",
     ],
   },
   en: {
     title: "Procurement Advisory",
-    subtitle: "Describe your situation. Polish or English — both work.",
+    subtitle: "Describe your situation. Polish or English - both work.",
     prompts: [
       "Supplier threatening to walk from the contract",
       "How to build a should-cost for mechanical components?",
       "Board wants to cut the supplier base by 30%",
-      "Negotiating with a monopolist — what's my position?",
+      "Negotiating with a monopolist - what's my position?",
     ],
   },
 };
@@ -200,7 +200,7 @@ export default function ChatWindow({ messages, onSend, onMessageMeta, onKeyDown,
           </button>
         </div>
         <p className="text-center text-xs text-gray-400 mt-2">
-          {locale === "pl" ? "Enter — wyślij · Shift+Enter — nowa linia" : "Enter to send · Shift+Enter for new line"}
+          {locale === "pl" ? "Enter - wyślij · Shift+Enter - nowa linia" : "Enter to send · Shift+Enter for new line"}
         </p>
         {sessionId && !sessionId.startsWith("offline-") && (
           <p className="text-center text-xs text-gray-300 mt-0.5">
@@ -233,7 +233,7 @@ export default function ChatWindow({ messages, onSend, onMessageMeta, onKeyDown,
               </>
             ) : (
               <p className="text-center text-xs text-green-600 py-1">
-                {locale === "pl" ? "Ocena zapisana — dziękujemy" : "Feedback saved — thank you"}
+                {locale === "pl" ? "Ocena zapisana - dziękujemy" : "Feedback saved - thank you"}
               </p>
             )}
           </div>

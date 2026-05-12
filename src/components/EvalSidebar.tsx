@@ -42,11 +42,11 @@ export default function EvalSidebar() {
           </h1>
           <p className="text-gray-600 leading-relaxed mb-4">
             Ta aplikacja służy do oceny jakości rozmowy z Wirtualnym Asystentem Zakupowym
-            rozwijanym dla zastosowań procurementowych i negocjacyjnych — w pierwszym kroku
+            rozwijanym dla zastosowań procurementowych i negocjacyjnych - w pierwszym kroku
             na potrzeby AI Asystenta na stronę profitia.pl
           </p>
           <p className="text-gray-600 leading-relaxed mb-4">
-            Przejdź proszę przez kilka konwersacji — jako potencjalny klient Profitii — kupiec
+            Przejdź proszę przez kilka konwersacji - jako potencjalny klient Profitii - kupiec
             z jakimś problemem (i dlatego jest na naszej stronie i szuka rozwiązania). Celem
             Asystenta jest udzielanie merytorycznych odpowiedzi, ale przede wszystkim
             zmierzających do kontaktu ze strony odwiedzającego (lead generation).
@@ -78,7 +78,7 @@ export default function EvalSidebar() {
             <li className="flex gap-2"><span className="text-gray-300 shrink-0">·</span>problemy między zakupami a biznesem.</li>
           </ul>
           <p className="text-gray-600 leading-relaxed mb-3">
-            Pisz z perspektywy potencjalnego użytkownika lub klienta systemu — nie
+            Pisz z perspektywy potencjalnego użytkownika lub klienta systemu - nie
             z perspektywy eksperta AI.
           </p>
           <p className="text-gray-600 leading-relaxed mb-3">

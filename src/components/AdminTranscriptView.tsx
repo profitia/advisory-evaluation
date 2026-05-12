@@ -313,7 +313,7 @@ function LocaleComparison({ sessions }: { sessions: TranscriptSession[] }) {
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6">
-      <h3 className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-4">PL vs EN — realism comparison</h3>
+      <h3 className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-4">PL vs EN - realism comparison</h3>
       <table className="w-full">
         <thead>
           <tr>

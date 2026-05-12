@@ -400,7 +400,7 @@ export default function AnalyticsDashboard({ adminToken }: Props) {
         <div className="space-y-6">
           <section>
             <h3 className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">
-              Tryby interakcji — performance
+              Tryby interakcji - performance
             </h3>
             <ModePerformance sessions={sessions} />
           </section>
@@ -414,7 +414,7 @@ export default function AnalyticsDashboard({ adminToken }: Props) {
 
           <section>
             <h3 className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">
-              Sygnały behawioralne — agregaty
+              Sygnały behawioralne - agregaty
             </h3>
             <BehavioralAggregates sessions={sessions} />
           </section>
@@ -424,21 +424,21 @@ export default function AnalyticsDashboard({ adminToken }: Props) {
         <div className="space-y-6">
           <section>
             <h3 className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">
-              Tagi reviewera — częstotliwość
+              Tagi reviewera - częstotliwość
             </h3>
             <TagFrequency sessions={sessions} />
           </section>
 
           <section>
             <h3 className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">
-              Stany emocjonalne — rozkład
+              Stany emocjonalne - rozkład
             </h3>
             <EmotionalTrajectory sessions={sessions} />
           </section>
 
           <section>
             <h3 className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">
-              PL vs EN — realism comparison
+              PL vs EN - realism comparison
             </h3>
             <LocaleRealism sessions={sessions} />
           </section>

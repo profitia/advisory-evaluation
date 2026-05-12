@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Advisory Evaluation",
-  description: "Profitia Advisory — Human Feedback Evaluation Environment",
+  description: "Profitia Advisory - Human Feedback Evaluation Environment",
   robots: "noindex, nofollow",
 };
 

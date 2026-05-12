@@ -244,22 +244,22 @@ const CATEGORY_POOLS: Record<PlaceholderCategory, LocalePool> = {
 
   emotional_softener: {
     pl: [
-      "Spokojnie — co dokładnie się wydarzyło?",
+      "Spokojnie - co dokładnie się wydarzyło?",
       "Od czego to się zaczęło?",
       "Dobra, po kolei.",
       "Najpierw kontekst.",
       "To mogło być trudne.",
-      "Bez pośpiechu — od początku.",
+      "Bez pośpiechu - od początku.",
       "Co jest teraz największym problemem?",
       "Zacznijmy od jednej rzeczy.",
     ],
     en: [
-      "Take it easy — what exactly happened?",
+      "Take it easy - what exactly happened?",
       "Where did this start?",
       "Okay, one step at a time.",
       "Context first.",
       "That sounds tough.",
-      "No rush — from the beginning.",
+      "No rush - from the beginning.",
       "What's the biggest issue right now?",
       "Let's start with one thing.",
     ],
