@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "@/lib/types";
-import FeedbackPanel from "./FeedbackPanel";
 
 interface Props {
   message: ChatMessage;
@@ -41,9 +39,6 @@ function LinkRenderer({ href, children }: { href?: string; children?: React.Reac
 }
 
 export default function MessageBubble({ message, locale }: Props) {
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
-
   const isUser = message.role === "user";
   const isStreaming = message.isStreaming;
 
@@ -105,37 +100,6 @@ export default function MessageBubble({ message, locale }: Props) {
         </span>
       )}
 
-      {/* Feedback toggle (assistant only, after streaming done) */}
-      {!isUser && !isStreaming && message.content && (
-        <div className="mt-2 ml-1">
-          {!feedbackSubmitted ? (
-            <button
-              onClick={() => setShowFeedback((v) => !v)}
-              className="text-xs font-medium text-profitia-blue hover:text-profitia-navy transition-colors flex items-center gap-1.5 border border-profitia-blue/30 hover:border-profitia-blue/60 rounded-md px-2.5 py-1 bg-blue-50/50"
-            >
-              <span className="text-[10px]">{showFeedback ? "▲" : "▼"}</span>
-              <span>
-                {locale === "pl" ? "Oceń tę odpowiedź" : "Rate this response"}
-              </span>
-            </button>
-          ) : (
-            <span className="text-xs text-green-600">
-              {locale === "pl" ? "Ocena zapisana — dziękujemy" : "Feedback saved — thank you"}
-            </span>
-          )}
-
-          {showFeedback && !feedbackSubmitted && (
-            <FeedbackPanel
-              messageId={message.dbId}
-              locale={locale}
-              onSubmitted={() => {
-                setFeedbackSubmitted(true);
-                setShowFeedback(false);
-              }}
-            />
-          )}
-        </div>
-      )}
     </div>
   );
 }

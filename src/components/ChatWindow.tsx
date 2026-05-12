@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ChatMessage } from "@/lib/types";
 import type { BehavioralSignalData } from "@/hooks/useBehavioralTelemetry";
 import MessageBubble from "./MessageBubble";
+import FeedbackPanel from "./FeedbackPanel";
 
 interface Props {
   messages: ChatMessage[];
@@ -47,9 +48,13 @@ const EMPTY_STATE = {
 
 export default function ChatWindow({ messages, onSend, onMessageMeta, onKeyDown, onPaste, collectSignal, isLoading, locale, sessionId }: Props) {
   const [input, setInput] = useState("");
+  const [showSessionFeedback, setShowSessionFeedback] = useState(false);
+  const [sessionFeedbackSubmitted, setSessionFeedbackSubmitted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const empty = EMPTY_STATE[locale];
+
+  const lastAssistantMsg = [...messages].reverse().find((m) => m.role === "assistant" && !m.isStreaming);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -172,6 +177,37 @@ export default function ChatWindow({ messages, onSend, onMessageMeta, onKeyDown,
           <p className="text-center text-xs text-gray-300 mt-0.5">
             session {sessionId.slice(0, 8)}
           </p>
+        )}
+
+        {/* Session-level feedback — visible once there are messages */}
+        {messages.length > 0 && !isLoading && (
+          <div className="mt-4 border-t border-gray-100 pt-3">
+            {!sessionFeedbackSubmitted ? (
+              <>
+                <button
+                  onClick={() => setShowSessionFeedback((v) => !v)}
+                  className="w-full text-xs font-medium text-profitia-blue hover:text-profitia-navy transition-colors flex items-center justify-center gap-1.5 border border-profitia-blue/30 hover:border-profitia-blue/60 rounded-lg px-3 py-2 bg-blue-50/50"
+                >
+                  <span className="text-[10px]">{showSessionFeedback ? "▲" : "▼"}</span>
+                  <span>{locale === "pl" ? "Oceń tę konwersację" : "Rate this conversation"}</span>
+                </button>
+                {showSessionFeedback && (
+                  <FeedbackPanel
+                    messageId={lastAssistantMsg?.dbId}
+                    locale={locale}
+                    onSubmitted={() => {
+                      setSessionFeedbackSubmitted(true);
+                      setShowSessionFeedback(false);
+                    }}
+                  />
+                )}
+              </>
+            ) : (
+              <p className="text-center text-xs text-green-600 py-1">
+                {locale === "pl" ? "Ocena zapisana — dziękujemy" : "Feedback saved — thank you"}
+              </p>
+            )}
+          </div>
         )}
       </div>
     </div>
