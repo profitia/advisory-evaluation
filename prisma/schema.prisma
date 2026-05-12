@@ -1,0 +1,100 @@
+// Advisory Evaluation Database — ETAP 8.5 Human Feedback Environment
+// Isolated from production. No shared data with CI-Profitia website.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Evaluation Session ────────────────────────────────────
+model EvaluationSession {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+
+  // Locale architecture — analytics-ready, isolatable per locale
+  sessionLocale     String   @default("pl")  // "pl" | "en" — the runtime locale
+  assistantLanguage String   @default("pl")  // "pl" | "en" — language assistant responds in
+  feedbackLanguage  String   @default("pl")  // always "pl" — evaluators are Polish-speaking
+
+  // Switch tracking — did tester switch locale during session?
+  userSwitchedLocale Boolean   @default(false)
+  switchTimestamp    DateTime?  // when locale was switched (null if no switch)
+
+  userAgent  String?
+  testerNote String?  // optional: who is this tester
+
+  messages EvaluationMessage[]
+  metric   ConversationMetric?
+
+  @@index([sessionLocale])  // enable efficient locale-based analytics queries
+  @@map("evaluation_sessions")
+}
+
+// ── Per-message record ────────────────────────────────────
+model EvaluationMessage {
+  id              String   @id @default(cuid())
+  sessionId       String
+  role            String   // "user" | "assistant"
+  content         String
+  interactionMode String?  // detected mode (assistant messages)
+  streamingMs     Int?     // streaming duration in ms
+  createdAt       DateTime @default(now())
+
+  session  EvaluationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  feedback MessageFeedback?
+
+  @@index([sessionId])
+  @@map("evaluation_messages")
+}
+
+// ── Per-message human feedback ────────────────────────────
+model MessageFeedback {
+  id        String   @id @default(cuid())
+  messageId String   @unique
+  createdAt DateTime @default(now())
+
+  // Ratings 1–5
+  naturalness      Int? // Naturalność rozmowy
+  adequacy         Int? // Adekwatność odpowiedzi
+  practicality     Int? // Poziom praktyczności
+  practitionerFeel Int? // Czy brzmi jak praktyk procurement?
+  trustLevel       Int? // Poziom zaufania do odpowiedzi
+
+  // Open-text annotations
+  whatWasUnnatural String? // Co brzmiało nienaturalnie?
+  whatWasValuable  String? // Co było najbardziej wartościowe?
+  whatSoundedAI    String? // Co brzmiało jak AI/bot?
+  tooConsulting    String? // Co było zbyt konsultingowe?
+  tooLong          String? // Co było zbyt długie?
+  tooConfident     String? // Co było zbyt pewne siebie?
+  freeComment      String? // Dowolny komentarz
+
+  message EvaluationMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@map("message_feedback")
+}
+
+// ── Session-level aggregated metrics ─────────────────────
+model ConversationMetric {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+  updatedAt DateTime @updatedAt
+
+  messageCount       Int   @default(0)
+  totalFeedbackGiven Int   @default(0)
+
+  // Averages across all rated messages
+  avgNaturalness      Float?
+  avgAdequacy         Float?
+  avgPracticality     Float?
+  avgPractitionerFeel Float?
+  avgTrustLevel       Float?
+
+  session EvaluationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("conversation_metrics")
+}

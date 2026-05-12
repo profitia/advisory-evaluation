@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap");
+
+:root {
+  --navy: #242F44;
+  --blue: #006D9E;
+  --bright: #0092D9;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  background-color: #F7F8FA;
+  color: #1a1a2e;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Markdown content in assistant messages */
+.prose-advisory p {
+  margin-bottom: 0.6em;
+  line-height: 1.65;
+}
+.prose-advisory p:last-child {
+  margin-bottom: 0;
+}
+.prose-advisory strong {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+.prose-advisory em {
+  font-style: italic;
+}
+.prose-advisory ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0.5em 0;
+}
+.prose-advisory li {
+  margin-bottom: 0.25em;
+  line-height: 1.6;
+}
+.prose-advisory a {
+  color: #006D9E;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-advisory a:hover {
+  color: #0092D9;
+}
+.prose-advisory code {
+  font-family: monospace;
+  font-size: 0.875em;
+  background: #f0f0f0;
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d0d0d8;
+  border-radius: 2px;
+}
