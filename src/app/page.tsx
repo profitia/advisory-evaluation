@@ -182,7 +182,10 @@ export default function EvaluationPage() {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Left: chat panel */}
+      {/* Left: sidebar 1/3 */}
+      <EvalSidebar />
+
+      {/* Right: chat panel 2/3 */}
       <div className="flex flex-col flex-1 min-w-0">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 px-6 py-0 flex items-center justify-between shrink-0">
@@ -255,8 +258,6 @@ export default function EvaluationPage() {
         </main>
       </div>
 
-      {/* Right sidebar */}
-      <EvalSidebar />
     </div>
   );
 }

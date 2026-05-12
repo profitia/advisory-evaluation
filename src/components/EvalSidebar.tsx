@@ -1,6 +1,6 @@
 export default function EvalSidebar() {
   return (
-    <aside className="w-80 shrink-0 h-full overflow-y-auto border-l border-gray-200 bg-white flex flex-col">
+    <aside className="w-1/3 shrink-0 h-full overflow-y-auto border-r border-gray-200 bg-white flex flex-col">
       {/* Logo */}
       <div className="px-7 pt-7 pb-5 border-b border-gray-100">
         <img src="/logo/profitia.svg" alt="Profitia" className="h-6 w-auto opacity-90" />
