@@ -111,9 +111,9 @@ export default function MessageBubble({ message, locale }: Props) {
           {!feedbackSubmitted ? (
             <button
               onClick={() => setShowFeedback((v) => !v)}
-              className="text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1"
+              className="text-xs font-medium text-profitia-blue hover:text-profitia-navy transition-colors flex items-center gap-1.5 border border-profitia-blue/30 hover:border-profitia-blue/60 rounded-md px-2.5 py-1 bg-blue-50/50"
             >
-              <span>{showFeedback ? "▲" : "▼"}</span>
+              <span className="text-[10px]">{showFeedback ? "▲" : "▼"}</span>
               <span>
                 {locale === "pl" ? "Oceń tę odpowiedź" : "Rate this response"}
               </span>

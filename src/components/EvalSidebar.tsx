@@ -16,10 +16,10 @@ export default function EvalSidebar() {
         </div>
         <button
           onClick={() => setOpen((v) => !v)}
-          className="text-xs text-gray-500 hover:text-gray-800 transition-colors flex items-center gap-1.5 border border-gray-200 rounded-lg px-3 py-1.5"
+          className="text-xs font-medium text-profitia-blue hover:text-profitia-navy transition-colors flex items-center gap-1.5 border border-profitia-blue/40 hover:border-profitia-blue rounded-lg px-3 py-1.5 bg-blue-50/60"
         >
           {open ? "Zwiń" : "Opis badania"}
-          <span className="text-gray-300 text-[10px]">{open ? "▲" : "▼"}</span>
+          <span className="text-[10px]">{open ? "▲" : "▼"}</span>
         </button>
       </div>
 
