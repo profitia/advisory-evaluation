@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { initSessionAnalytics } from "@/lib/analytics";
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,6 +24,9 @@ export async function POST(req: NextRequest) {
         userAgent,
       },
     });
+
+    // ANALYTICS-1: initialize session analytics row (non-blocking)
+    initSessionAnalytics(session.id, locale).catch(() => {/* silent */});
 
     return NextResponse.json({ sessionId: session.id });
   } catch {

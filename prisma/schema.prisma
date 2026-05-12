@@ -31,6 +31,7 @@ model EvaluationSession {
   metric            ConversationMetric?
   behavioralSignals BehavioralSignal[]
   reviewerNote      ReviewerNote?
+  sessionAnalytics  SessionAnalytics?
 
   @@index([sessionLocale])  // enable efficient locale-based analytics queries
   @@map("evaluation_sessions")
@@ -178,4 +179,116 @@ model ReviewerNote {
   session EvaluationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@map("reviewer_notes")
+}
+
+// ── ANALYTICS-1: App visit tracking ──────────────────────
+// Lightweight fingerprint — no PII. Purpose: usage patterns, repeat visitors.
+model AppVisit {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+
+  // Locale when page loaded
+  locale        String   @default("pl")
+
+  // Session that was created on this visit (null = bounced before session)
+  sessionId     String?
+
+  // Lightweight heuristic fingerprint (hash of ua + ip fragment)
+  // Not used for tracking individuals — used for repeat-visitor estimation
+  visitorHash   String?
+
+  // HTTP context
+  userAgent     String?
+  referrer      String?
+  landingPath   String?  @default("/")
+
+  // Repeat visitor heuristic
+  repeatVisitor        Boolean @default(false)
+  estimatedVisitCount  Int     @default(1)
+
+  @@index([createdAt])
+  @@index([locale])
+  @@index([visitorHash])
+  @@map("app_visits")
+}
+
+// ── ANALYTICS-1: Session lifecycle analytics ──────────────
+// Extends EvaluationSession with usage/engagement metrics.
+// Updated incrementally during session, finalized on session end.
+model SessionAnalytics {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+  updatedAt DateTime @updatedAt
+
+  // Timestamps
+  startedAt               DateTime  @default(now())
+  endedAt                 DateTime?
+  conversationStartedAt   DateTime? // when user sent first message
+
+  // Message counts
+  totalMessages          Int @default(0)
+  totalUserMessages      Int @default(0)
+  totalAssistantMessages Int @default(0)
+
+  // Timing
+  averageResponseTimeMs Int? // avg ms from user msg to first AI token
+  sessionDurationMs     Int? // endedAt - startedAt in ms
+
+  // Quality heuristics
+  abandoned                Boolean @default(false)
+  completedConversation    Boolean @default(false)
+  conversationDepthScore   Int     @default(0)
+
+  // Locale split
+  locale  String @default("pl")
+
+  // CTA tracking
+  ctaReached  Boolean @default(false)
+  ctaType     String? // contact | workshop | advisory | diagnostic | sourcing | negotiation | generic
+  ctaContinued Boolean @default(false) // did conversation continue after CTA?
+
+  // Feedback tracking
+  feedbackSubmitted Boolean @default(false)
+
+  // Link to session
+  session EvaluationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([locale])
+  @@index([startedAt])
+  @@index([abandoned])
+  @@map("session_analytics")
+}
+
+// ── ANALYTICS-1: Daily snapshot (lazy-generated) ──────────
+// Aggregated daily stats. Created/updated on-demand (no cron needed).
+model DailyAnalyticsSnapshot {
+  id   String   @id @default(cuid())
+  date DateTime @unique // start of day UTC (midnight)
+
+  // Volumes
+  totalVisits         Int @default(0)
+  totalSessions       Int @default(0)
+  totalConversations  Int @default(0)  // sessions where user sent ≥1 message
+  totalMessages       Int @default(0)
+
+  // Locale split
+  plVisits    Int @default(0)
+  enVisits    Int @default(0)
+  plSessions  Int @default(0)
+  enSessions  Int @default(0)
+
+  // Engagement averages (nullable — no data = null)
+  avgDepthScore     Float?
+  avgDurationMs     Float?
+  avgFeedbackScore  Float?  // avg of all rating dimensions
+
+  // Quality
+  abandonmentRate   Float?  // 0.0–1.0
+  feedbackRate      Float?  // sessions with feedback / total sessions
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+  @@map("daily_analytics_snapshots")
 }

@@ -9,6 +9,30 @@ import EvalSidebar from "@/components/EvalSidebar";
 
 type Locale = "pl" | "en";
 
+// ── Analytics fire-and-forget helpers ────────────────────────────────────────
+// All analytics calls are silent — they NEVER block or break the UX.
+
+function fireVisit(locale: Locale, sessionId: string | null) {
+  fetch("/api/visit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      locale,
+      sessionId,
+      referrer: document.referrer || null,
+      landingPath: window.location.pathname,
+    }),
+  }).catch(() => {/* silent */});
+}
+
+function fireSessionEvent(body: Record<string, unknown>) {
+  fetch("/api/session-events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).catch(() => {/* silent */});
+}
+
 const MODE_LABELS: Record<Locale, { tab: string; flag: string; badge: string }> = {
   pl: { tab: "Polski Advisory", flag: "🇵🇱", badge: "PL" },
   en: { tab: "English Advisory", flag: "🇬🇧", badge: "EN" },
@@ -36,6 +60,12 @@ export default function EvaluationPage() {
   const [sessionError, setSessionError] = useState(false);
   const isFirstMount = useRef(true);
 
+  // Analytics refs
+  const conversationStartedFired = useRef(false);
+  const exchangeCount = useRef(0);
+  const lastUserContent = useRef("");
+  const sessionStartMs = useRef(Date.now());
+
   const telemetry = useBehavioralTelemetry();
 
   // Create initial session on mount
@@ -43,21 +73,56 @@ export default function EvaluationPage() {
     createSession("pl", false).then((id) => {
       if (id) {
         setSessionId(id);
+        // ANALYTICS-1: fire visit tracking after session created
+        fireVisit("pl", id);
       } else {
         setSessionError(true);
         setSessionId("offline-" + nanoid(8));
+        fireVisit("pl", null);
       }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ANALYTICS-1: finalize session on unmount / tab close
+  useEffect(() => {
+    const handleUnload = () => {
+      if (sessionId && !sessionId.startsWith("offline-")) {
+        // Use sendBeacon for reliable delivery on close
+        const payload = JSON.stringify({
+          event: "session_ended",
+          sessionId,
+          abandoned: exchangeCount.current < 2,
+        });
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon("/api/session-events", new Blob([payload], { type: "application/json" }));
+        }
+      }
+    };
+    window.addEventListener("beforeunload", handleUnload);
+    return () => window.removeEventListener("beforeunload", handleUnload);
+  }, [sessionId]);
 
   // Switch locale — creates a NEW isolated session, clears transcript
   const switchLocale = useCallback(async (next: Locale) => {
     if (next === locale) return;
 
+    // ANALYTICS-1: finalize outgoing session
+    if (sessionId && !sessionId.startsWith("offline-")) {
+      fireSessionEvent({
+        event: "session_ended",
+        sessionId,
+        abandoned: exchangeCount.current < 2,
+      });
+    }
+
     // Immediately clear UI — new session
     setMessages([]);
     setIsLoading(false);
     setLocale(next);
+    conversationStartedFired.current = false;
+    exchangeCount.current = 0;
+    sessionStartMs.current = Date.now();
 
     const newId = await createSession(next, !isFirstMount.current);
     isFirstMount.current = false;
@@ -65,17 +130,27 @@ export default function EvaluationPage() {
     if (newId) {
       setSessionId(newId);
       setSessionError(false);
+      // ANALYTICS-1: fire visit for new locale session
+      fireVisit(next, newId);
     } else {
       setSessionError(true);
       setSessionId("offline-" + nanoid(8));
+      fireVisit(next, null);
     }
-  }, [locale]);
+  }, [locale, sessionId]);
 
   const sendMessage = useCallback(
     async (content: string) => {
       if (isLoading || !content.trim()) return;
 
       const userMessage: ChatMessage = { id: nanoid(), role: "user", content };
+
+      // ANALYTICS-1: track first message = conversation started
+      if (!conversationStartedFired.current && sessionId && !sessionId.startsWith("offline-")) {
+        conversationStartedFired.current = true;
+        fireSessionEvent({ event: "conversation_started", sessionId });
+      }
+      lastUserContent.current = content;
       const assistantId = nanoid();
       const assistantPlaceholder: ChatMessage = {
         id: assistantId,
@@ -127,6 +202,21 @@ export default function EvaluationPage() {
               setIsLoading(false);
               // Notify telemetry that assistant message is complete
               telemetry.onAssistantComplete();
+
+              // ANALYTICS-1: track message exchange
+              if (sessionId && !sessionId.startsWith("offline-")) {
+                const currentAssistant = messages.find((m) => m.id === assistantId);
+                const assistantText = currentAssistant?.content ?? "";
+                const isFirst = exchangeCount.current === 0;
+                exchangeCount.current += 1;
+                fireSessionEvent({
+                  event: "message_exchange",
+                  sessionId,
+                  userContent: lastUserContent.current,
+                  assistantContent: assistantText,
+                  isFirstExchange: isFirst,
+                });
+              }
               break;
             }
 
