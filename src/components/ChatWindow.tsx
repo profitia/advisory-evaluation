@@ -177,12 +177,12 @@ export default function ChatWindow({ messages, onSend, onMessageMeta, onKeyDown,
               placeholder=""
               rows={1}
               disabled={isLoading}
-              className="w-full resize-none bg-transparent text-sm text-gray-800 outline-none disabled:opacity-50 min-h-[24px] max-h-[160px]"
+              className="w-full resize-none bg-transparent text-[16px] leading-snug text-gray-800 outline-none disabled:opacity-50 min-h-[24px] max-h-[160px] md:text-sm"
             />
             {!input && (
               <span
                 key={placeholderKey}
-                className="placeholder-fade absolute top-0 left-0 text-sm text-gray-400 pointer-events-none select-none whitespace-nowrap overflow-hidden max-w-full"
+                className="placeholder-fade absolute top-0 left-0 text-[16px] leading-snug md:text-sm text-gray-400 pointer-events-none select-none whitespace-nowrap overflow-hidden max-w-full"
               >
                 {dynamicPlaceholder}
               </span>
