@@ -621,27 +621,127 @@ export function generateDynamicPlaceholder({
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
-// ── Convenience wrapper (unchanged interface — ChatWindow compatible) ──────────
+// ── UX-CONV-3 — Placeholder Continuity Layer ─────────────────────────────────
+// Priority: 1. last AI question  2. shortened AI question  3. generic fallback
+// The momentum engine above is retained as a low-priority fallback only.
+
+const FALLBACK_PLACEHOLDERS: Record<"pl" | "en", string[]> = {
+  pl: [
+    "Opisz co wydarzyło się dalej…",
+    "Dodaj więcej kontekstu…",
+    "Co było dalej?",
+    "Co się zmieniło?",
+    "I co potem?",
+  ],
+  en: [
+    "What happened next?",
+    "Add more context…",
+    "What happened after that?",
+    "What changed?",
+    "And then?",
+  ],
+};
+
+const QUESTION_PREFIXES_TO_STRIP: RegExp[] = [
+  // Polish
+  /^Proszę powiedzieć[,:]?\s*/i,
+  /^Powiedz mi[,:]?\s*/i,
+  /^Mogę zapytać[,:]?\s*/i,
+  /^Chciał(?:e[mś]|abym)[,:]?\s*/i,
+  /^Właśnie[,:]?\s*/i,
+  /^Zatem[,:]?\s*/i,
+  /^A zatem[,:]?\s*/i,
+  /^Skoro tak[,:]?\s*/i,
+  /^W takim razie[,:]?\s*/i,
+  // English
+  /^Can you tell me[,:]?\s*/i,
+  /^Could you tell me[,:]?\s*/i,
+  /^I'd like to ask[,:]?\s*/i,
+  /^Let me ask[,:]?\s*/i,
+  /^So then[,:]?\s*/i,
+  /^Given that[,:]?\s*/i,
+  /^In that case[,:]?\s*/i,
+  /^With that in mind[,:]?\s*/i,
+];
+
+/**
+ * Extracts the last question from an AI assistant message.
+ * Returns null if no question is found.
+ */
+export function extractLastQuestionFromAssistantMessage(
+  content: string,
+  _locale: "pl" | "en"
+): string | null {
+  // Strip markdown formatting
+  const cleaned = content
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/^#+\s+/gm, "")
+    .replace(/\[(.+?)\]\(.+?\)/g, "$1")
+    .trim();
+
+  // Split into sentences on sentence-ending punctuation followed by whitespace
+  const sentences = cleaned
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 3);
+
+  const questions = sentences.filter((s) => s.endsWith("?"));
+  if (questions.length === 0) return null;
+
+  let question = questions[questions.length - 1];
+
+  // Strip common filler prefixes
+  for (const prefix of QUESTION_PREFIXES_TO_STRIP) {
+    const stripped = question.replace(prefix, "");
+    if (stripped !== question && stripped.length >= 5) {
+      question = stripped.charAt(0).toUpperCase() + stripped.slice(1);
+      if (!question.endsWith("?")) question += "?";
+      break;
+    }
+  }
+
+  // Shorten if >90 chars: split at a natural separator, or truncate at word boundary
+  if (question.length > 90) {
+    const separators = [" - ", ", ", " i ", " or ", " and "];
+    let shortened = "";
+    for (const sep of separators) {
+      const idx = question.indexOf(sep);
+      if (idx > 20 && idx < 80) {
+        shortened = question.slice(0, idx) + "?";
+        break;
+      }
+    }
+    if (!shortened) {
+      shortened = question.slice(0, 87).replace(/\s+\S*$/, "") + "…?";
+    }
+    question = shortened;
+  }
+
+  return question.length >= 5 ? question : null;
+}
+
+// ── Convenience wrapper (ChatWindow-compatible interface) ─────────────────────
 
 export function getPlaceholderFromMessages(
   messages: ChatMessage[],
   locale: "pl" | "en",
   recentlyUsed: string[] = []
 ): string {
-  const stage = detectConversationStage(messages);
-  const momentum = computeMomentumState(messages);
-  const userEnergy = detectUserEnergy(messages);
-  const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
-  const interactionMode = lastAssistant?.interactionMode as InteractionMode | undefined;
+  // 1. Extract last question from most recent assistant message
+  const lastAssistant = [...messages]
+    .reverse()
+    .find((m) => m.role === "assistant" && !m.isStreaming);
 
-  return generateDynamicPlaceholder({
-    conversationStage: stage,
-    interactionMode,
-    locale,
-    messageCount: messages.length,
-    recentlyUsed,
-    momentum,
-    userEnergy,
-  });
+  if (lastAssistant?.content) {
+    const question = extractLastQuestionFromAssistantMessage(lastAssistant.content, locale);
+    if (question) return question;
+  }
+
+  // 2. Fallback: generic continuity prompts (avoid repeating recent ones)
+  const pool = FALLBACK_PLACEHOLDERS[locale];
+  let candidates = pool.filter((p) => !recentlyUsed.includes(p));
+  if (candidates.length === 0) candidates = [...pool];
+  return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
