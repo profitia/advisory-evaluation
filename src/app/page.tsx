@@ -181,12 +181,12 @@ export default function EvaluationPage() {
   );
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex flex-col md:flex-row h-screen bg-gray-50 overflow-hidden">
       {/* Left: sidebar 1/3 */}
       <EvalSidebar />
 
       {/* Right: chat panel 2/3 */}
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="flex flex-col flex-1 min-w-0 min-h-0">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 px-6 py-0 flex items-center justify-between shrink-0">
           {/* Test mode tabs */}

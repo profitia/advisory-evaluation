@@ -1,13 +1,35 @@
+"use client";
+
+import { useState } from "react";
+
 export default function EvalSidebar() {
+  const [open, setOpen] = useState(false);
+
   return (
-    <aside className="w-1/3 shrink-0 h-full overflow-y-auto border-r border-gray-200 bg-white flex flex-col">
-      {/* Logo */}
-      <div className="px-7 pt-7 pb-5 border-b border-gray-100">
+    <aside className="md:w-1/3 md:shrink-0 md:h-full md:overflow-y-auto md:border-r md:border-b-0 border-b border-gray-200 bg-white flex flex-col">
+
+      {/* Mobile toggle header — hidden on desktop */}
+      <div className="md:hidden flex items-center justify-between px-5 py-3 shrink-0">
+        <div className="flex items-center gap-3">
+          <img src="/logo/profitia.svg" alt="Profitia" className="h-5 w-auto opacity-90" />
+          <span className="text-[10px] text-gray-400 uppercase tracking-widest">Ewaluacja · ETAP 8.5</span>
+        </div>
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="text-xs text-gray-500 hover:text-gray-800 transition-colors flex items-center gap-1.5 border border-gray-200 rounded-lg px-3 py-1.5"
+        >
+          {open ? "Zwiń" : "Opis badania"}
+          <span className="text-gray-300 text-[10px]">{open ? "▲" : "▼"}</span>
+        </button>
+      </div>
+
+      {/* Logo — desktop only */}
+      <div className="hidden md:block px-7 pt-7 pb-5 border-b border-gray-100 shrink-0">
         <img src="/logo/profitia.svg" alt="Profitia" className="h-6 w-auto opacity-90" />
       </div>
 
-      {/* Content */}
-      <div className="flex-1 px-7 py-6 space-y-9 text-sm">
+      {/* Content — always visible on desktop, collapsible on mobile */}
+      <div className={`${open ? "flex" : "hidden"} md:flex flex-col flex-1 overflow-y-auto px-7 py-6 space-y-9 text-sm`}>
 
         {/* Section 1 */}
         <section>
@@ -135,3 +157,4 @@ export default function EvalSidebar() {
     </aside>
   );
 }
+
