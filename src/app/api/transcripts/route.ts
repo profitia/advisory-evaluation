@@ -27,9 +27,31 @@ export async function GET(req: NextRequest) {
       include: {
         messages: {
           orderBy: { createdAt: "asc" },
-          include: { feedback: true },
+          include: {
+            feedback: true,
+            reviewTags: { select: { tag: true, valence: true } },
+          },
         },
         metric: true,
+        reviewerNote: true,
+        behavioralSignals: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            messageId: true,
+            draftDurationMs: true,
+            responseLatencyMs: true,
+            backspaceCount: true,
+            pastedChars: true,
+            finalLength: true,
+            hesitationMs: true,
+            emotionalState: true,
+            ctaClicked: true,
+            ctaLabel: true,
+            isAbandonmentPoint: true,
+            createdAt: true,
+          },
+        },
       },
     });
 

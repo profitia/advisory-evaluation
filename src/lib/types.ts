@@ -32,12 +32,43 @@ export interface FeedbackText {
 export type FeedbackPayload = FeedbackRatings & FeedbackText & { messageId: string };
 
 // Admin types
+export interface ReviewTagData {
+  tag: string;
+  valence: string;
+}
+
+export interface BehavioralSignalRecord {
+  id: string;
+  messageId: string | null;
+  draftDurationMs: number | null;
+  responseLatencyMs: number | null;
+  backspaceCount: number | null;
+  pastedChars: number | null;
+  finalLength: number | null;
+  hesitationMs: number | null;
+  emotionalState: string | null;
+  ctaClicked: boolean;
+  ctaLabel: string | null;
+  isAbandonmentPoint: boolean;
+  createdAt: string;
+}
+
+export interface ReviewerNoteData {
+  id: string;
+  sessionId: string;
+  overallImpression: string | null;
+  goodMoments: string | null;
+  badMoments: string | null;
+  llmPerfect: string | null;
+}
+
 export interface TranscriptMessage {
   id: string;
   role: string;
   content: string;
   interactionMode: string | null;
   createdAt: string;
+  reviewTags?: ReviewTagData[];
   feedback: {
     naturalness: number | null;
     adequacy: number | null;
@@ -63,6 +94,8 @@ export interface TranscriptSession {
   userSwitchedLocale: boolean;
   switchTimestamp: string | null;
   testerNote: string | null;
+  reviewerNote: ReviewerNoteData | null;
+  behavioralSignals?: BehavioralSignalRecord[];
   messages: TranscriptMessage[];
   metric: {
     messageCount: number;

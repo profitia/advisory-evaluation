@@ -27,8 +27,10 @@ model EvaluationSession {
   userAgent  String?
   testerNote String?  // optional: who is this tester
 
-  messages EvaluationMessage[]
-  metric   ConversationMetric?
+  messages          EvaluationMessage[]
+  metric            ConversationMetric?
+  behavioralSignals BehavioralSignal[]
+  reviewerNote      ReviewerNote?
 
   @@index([sessionLocale])  // enable efficient locale-based analytics queries
   @@map("evaluation_sessions")
@@ -44,8 +46,9 @@ model EvaluationMessage {
   streamingMs     Int?     // streaming duration in ms
   createdAt       DateTime @default(now())
 
-  session  EvaluationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  feedback MessageFeedback?
+  session    EvaluationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  feedback   MessageFeedback?
+  reviewTags ReviewTag[]
 
   @@index([sessionId])
   @@map("evaluation_messages")
@@ -97,4 +100,82 @@ model ConversationMetric {
   session EvaluationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@map("conversation_metrics")
+}
+
+// ── Behavioral telemetry — per user turn ─────────────────
+model BehavioralSignal {
+  id        String  @id @default(cuid())
+  sessionId String
+  messageId String? // null = session-level event
+
+  // Message drafting
+  draftDurationMs   Int? // ms from first keystroke to submit
+  responseLatencyMs Int? // ms from last assistant msg to first keystroke
+  backspaceCount    Int? // number of backspace/delete events
+  pastedChars       Int? // chars pasted (0 = fully typed)
+  deletedChars      Int? // total chars deleted during draft
+  finalLength       Int? // final message char count
+  hesitationMs      Int? // ms between last keystroke and submit
+
+  // Conversation behavior
+  scrolledResponse Boolean @default(false)
+
+  // CTA behavior
+  ctaClicked        Boolean   @default(false)
+  ctaLabel          String?
+  ctaTimestamp      DateTime?
+  returnedAfterCta  Boolean   @default(false)
+  continuedAfterCta Boolean   @default(false)
+
+  // Abandonment
+  isAbandonmentPoint Boolean @default(false)
+
+  // Emotional state estimate (heuristic, client-side)
+  // stressed | skeptical | analytical | rushed | frustrated | calm | exploratory
+  emotionalState String?
+
+  createdAt DateTime @default(now())
+
+  session EvaluationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("behavioral_signals")
+}
+
+// ── Reviewer tags — per assistant message ─────────────────
+// POSITIVE: human, tactical, useful, realistic, executive, practical, confident, sharp
+// NEGATIVE: ai-sounding, too-polished, too-complete, consulting-deck, generic,
+//           unrealistic, overstructured, too-safe, enterprise-bot,
+//           unnatural-empathy, fake-authority, artificial-certainty
+model ReviewTag {
+  id        String   @id @default(cuid())
+  messageId String
+  tag       String   // tag value slug
+  valence   String   // "positive" | "negative"
+  createdAt DateTime @default(now())
+
+  message EvaluationMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, tag])
+  @@index([messageId])
+  @@index([tag])
+  @@map("review_tags")
+}
+
+// ── Reviewer notes — per session ─────────────────────────
+model ReviewerNote {
+  id        String @id @default(cuid())
+  sessionId String @unique
+
+  overallImpression String? // general impression of the session
+  goodMoments       String? // where assistant sounded natural / good
+  badMoments        String? // where assistant sounded artificial
+  llmPerfect        String? // where it was "too LLM-perfect"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session EvaluationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("reviewer_notes")
 }

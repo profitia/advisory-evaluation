@@ -2,11 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ChatMessage } from "@/lib/types";
+import type { BehavioralSignalData } from "@/hooks/useBehavioralTelemetry";
 import MessageBubble from "./MessageBubble";
 
 interface Props {
   messages: ChatMessage[];
   onSend: (content: string) => void;
+  onMessageMeta?: (content: string, signal: BehavioralSignalData) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  onPaste?: (e: React.ClipboardEvent<HTMLTextAreaElement>) => void;
+  collectSignal?: (content: string) => BehavioralSignalData;
   isLoading: boolean;
   locale: "pl" | "en";
   sessionId: string | null;
@@ -40,7 +45,7 @@ const EMPTY_STATE = {
   },
 };
 
-export default function ChatWindow({ messages, onSend, isLoading, locale, sessionId }: Props) {
+export default function ChatWindow({ messages, onSend, onMessageMeta, onKeyDown, onPaste, collectSignal, isLoading, locale, sessionId }: Props) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -63,16 +68,27 @@ export default function ChatWindow({ messages, onSend, isLoading, locale, sessio
   const handleSend = () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
+    // Collect behavioral signal before clearing input
+    if (collectSignal && onMessageMeta) {
+      const signal = collectSignal(trimmed);
+      onMessageMeta(trimmed, signal);
+    }
     setInput("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     onSend(trimmed);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Forward to telemetry handler first
+    onKeyDown?.(e);
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    onPaste?.(e);
   };
 
   return (
@@ -132,6 +148,7 @@ export default function ChatWindow({ messages, onSend, isLoading, locale, sessio
             value={input}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             placeholder={PLACEHOLDER[locale]}
             rows={1}
             disabled={isLoading}

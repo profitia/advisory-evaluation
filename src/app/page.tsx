@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { nanoid } from "nanoid";
 import type { ChatMessage } from "@/lib/types";
+import { useBehavioralTelemetry } from "@/hooks/useBehavioralTelemetry";
 import ChatWindow from "@/components/ChatWindow";
 
 type Locale = "pl" | "en";
@@ -33,6 +34,8 @@ export default function EvaluationPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionError, setSessionError] = useState(false);
   const isFirstMount = useRef(true);
+
+  const telemetry = useBehavioralTelemetry();
 
   // Create initial session on mount
   useEffect(() => {
@@ -121,6 +124,8 @@ export default function EvaluationPage() {
                 prev.map((m) => m.id === assistantId ? { ...m, isStreaming: false } : m)
               );
               setIsLoading(false);
+              // Notify telemetry that assistant message is complete
+              telemetry.onAssistantComplete();
               break;
             }
 
@@ -162,7 +167,16 @@ export default function EvaluationPage() {
         setIsLoading(false);
       }
     },
-    [isLoading, messages, locale, sessionId]
+    [isLoading, messages, locale, sessionId, telemetry]
+  );
+
+  // Handle behavioral metadata fired by ChatWindow before onSend
+  const handleMessageMeta = useCallback(
+    (content: string, signal: Parameters<typeof telemetry.sendSignal>[1]) => {
+      if (!sessionId) return;
+      void telemetry.sendSignal(sessionId, signal);
+    },
+    [sessionId, telemetry]
   );
 
   return (
@@ -227,6 +241,10 @@ export default function EvaluationPage() {
         <ChatWindow
           messages={messages}
           onSend={sendMessage}
+          onMessageMeta={handleMessageMeta}
+          onKeyDown={telemetry.onKeyDown}
+          onPaste={telemetry.onPaste}
+          collectSignal={telemetry.collectSignal}
           isLoading={isLoading}
           locale={locale}
           sessionId={sessionId}
