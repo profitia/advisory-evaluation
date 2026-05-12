@@ -221,14 +221,16 @@ export default function ChatWindow({ messages, onSend, onMessageMeta, onKeyDown,
                   <span>{locale === "pl" ? "Oceń tę konwersację" : "Rate this conversation"}</span>
                 </button>
                 {showSessionFeedback && (
-                  <FeedbackPanel
-                    messageId={lastAssistantMsg?.dbId}
-                    locale={locale}
-                    onSubmitted={() => {
-                      setSessionFeedbackSubmitted(true);
-                      setShowSessionFeedback(false);
-                    }}
-                  />
+                  <div className="overflow-y-auto max-h-[55vh] mt-2 -mx-1 px-1">
+                    <FeedbackPanel
+                      messageId={lastAssistantMsg?.dbId}
+                      locale={locale}
+                      onSubmitted={() => {
+                        setSessionFeedbackSubmitted(true);
+                        setShowSessionFeedback(false);
+                      }}
+                    />
+                  </div>
                 )}
               </>
             ) : (
