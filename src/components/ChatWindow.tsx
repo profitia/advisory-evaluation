@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type { ChatMessage } from "@/lib/types";
 import type { BehavioralSignalData } from "@/hooks/useBehavioralTelemetry";
 import MessageBubble from "./MessageBubble";
 import FeedbackPanel from "./FeedbackPanel";
+import { getPlaceholderFromMessages } from "@/runtime/conversation-placeholder-engine";
 
 interface Props {
   messages: ChatMessage[];
@@ -17,11 +18,6 @@ interface Props {
   locale: "pl" | "en";
   sessionId: string | null;
 }
-
-const PLACEHOLDER = {
-  pl: "Opisz swoją sytuację zakupową...",
-  en: "Describe your procurement situation...",
-};
 
 const EMPTY_STATE = {
   pl: {
@@ -55,6 +51,29 @@ export default function ChatWindow({ messages, onSend, onMessageMeta, onKeyDown,
   const empty = EMPTY_STATE[locale];
 
   const lastAssistantMsg = [...messages].reverse().find((m) => m.role === "assistant" && !m.isStreaming);
+
+  // ── Dynamic placeholder state ──────────────────────────────────────────────
+  const usedPlaceholders = useRef<string[]>([]);
+  const [dynamicPlaceholder, setDynamicPlaceholder] = useState<string>(
+    () => getPlaceholderFromMessages([], locale, [])
+  );
+  const [placeholderKey, setPlaceholderKey] = useState(0);
+
+  const advancePlaceholder = useCallback(() => {
+    const next = getPlaceholderFromMessages(messages, locale, usedPlaceholders.current);
+    usedPlaceholders.current = [...usedPlaceholders.current.slice(-2), next];
+    setDynamicPlaceholder(next);
+    setPlaceholderKey((k) => k + 1);
+  }, [messages, locale]);
+
+  // Update placeholder after each completed assistant message
+  useEffect(() => {
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg?.role === "assistant" && !lastMsg.isStreaming) {
+      advancePlaceholder();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages.length, messages[messages.length - 1]?.isStreaming]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -148,17 +167,27 @@ export default function ChatWindow({ messages, onSend, onMessageMeta, onKeyDown,
       {/* Input area */}
       <div className="py-4 border-t border-gray-100">
         <div className="flex items-end gap-2 bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3 focus-within:border-profitia-blue focus-within:ring-1 focus-within:ring-profitia-blue transition-all">
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
-            placeholder={PLACEHOLDER[locale]}
-            rows={1}
-            disabled={isLoading}
-            className="flex-1 resize-none bg-transparent text-sm text-gray-800 placeholder-gray-400 outline-none disabled:opacity-50 min-h-[24px] max-h-[160px]"
-          />
+          <div className="relative flex-1">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
+              placeholder=""
+              rows={1}
+              disabled={isLoading}
+              className="w-full resize-none bg-transparent text-sm text-gray-800 outline-none disabled:opacity-50 min-h-[24px] max-h-[160px]"
+            />
+            {!input && (
+              <span
+                key={placeholderKey}
+                className="placeholder-fade absolute top-0 left-0 text-sm text-gray-400 pointer-events-none select-none whitespace-nowrap overflow-hidden max-w-full"
+              >
+                {dynamicPlaceholder}
+              </span>
+            )}
+          </div>
           <button
             onClick={handleSend}
             disabled={isLoading || !input.trim()}

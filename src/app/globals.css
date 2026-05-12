@@ -21,6 +21,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Dynamic placeholder fade-in animation */
+@keyframes placeholderFadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.placeholder-fade {
+  animation: placeholderFadeIn 0.35s ease-out forwards;
+}
+
 /* Markdown content in assistant messages */
 .prose-advisory p {
   margin-bottom: 0.6em;
