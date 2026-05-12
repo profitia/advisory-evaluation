@@ -5,6 +5,7 @@ import { nanoid } from "nanoid";
 import type { ChatMessage } from "@/lib/types";
 import { useBehavioralTelemetry } from "@/hooks/useBehavioralTelemetry";
 import ChatWindow from "@/components/ChatWindow";
+import EvalSidebar from "@/components/EvalSidebar";
 
 type Locale = "pl" | "en";
 
@@ -180,76 +181,82 @@ export default function EvaluationPage() {
   );
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-0 flex items-center justify-between">
-        {/* Test mode tabs */}
-        <div className="flex items-end gap-0">
-          {(["pl", "en"] as Locale[]).map((l) => {
-            const active = locale === l;
-            const { tab, flag } = MODE_LABELS[l];
-            return (
-              <button
-                key={l}
-                onClick={() => switchLocale(l)}
-                disabled={isLoading}
-                className={[
-                  "relative flex items-center gap-2 px-5 py-4 text-sm font-medium transition-all border-b-2 disabled:cursor-not-allowed",
-                  active
-                    ? "border-profitia-navy text-profitia-navy bg-white"
-                    : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200",
-                ].join(" ")}
-              >
-                <span>{flag}</span>
-                <span>{tab}</span>
-                {active && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-profitia-navy" />
-                )}
-              </button>
-            );
-          })}
-        </div>
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* Left: chat panel */}
+      <div className="flex flex-col flex-1 min-w-0">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200 px-6 py-0 flex items-center justify-between shrink-0">
+          {/* Test mode tabs */}
+          <div className="flex items-end gap-0">
+            {(["pl", "en"] as Locale[]).map((l) => {
+              const active = locale === l;
+              const { tab, flag } = MODE_LABELS[l];
+              return (
+                <button
+                  key={l}
+                  onClick={() => switchLocale(l)}
+                  disabled={isLoading}
+                  className={[
+                    "relative flex items-center gap-2 px-5 py-4 text-sm font-medium transition-all border-b-2 disabled:cursor-not-allowed",
+                    active
+                      ? "border-profitia-navy text-profitia-navy bg-white"
+                      : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200",
+                  ].join(" ")}
+                >
+                  <span>{flag}</span>
+                  <span>{tab}</span>
+                  {active && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-profitia-navy" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
-        {/* Right side: session info + offline badge */}
-        <div className="flex items-center gap-3">
-          {sessionError && (
-            <span className="text-xs text-amber-500">offline mode</span>
-          )}
-          <span className="text-xs text-gray-300 font-mono">
-            {locale.toUpperCase()}
-            {sessionId && !sessionId.startsWith("offline-")
-              ? ` · ${sessionId.slice(0, 8)}`
-              : ""}
-          </span>
-          <span className="text-xs text-gray-300">ETAP 8.5</span>
-        </div>
-      </header>
+          {/* Right side: session info + offline badge */}
+          <div className="flex items-center gap-3">
+            {sessionError && (
+              <span className="text-xs text-amber-500">offline mode</span>
+            )}
+            <span className="text-xs text-gray-300 font-mono">
+              {locale.toUpperCase()}
+              {sessionId && !sessionId.startsWith("offline-")
+                ? ` · ${sessionId.slice(0, 8)}`
+                : ""}
+            </span>
+            <span className="text-xs text-gray-300">ETAP 8.5</span>
+          </div>
+        </header>
 
-      {/* Locale switch notice */}
-      {messages.length === 0 && !isFirstMount.current && (
-        <div className="text-center py-2 bg-blue-50 border-b border-blue-100">
-          <p className="text-xs text-blue-600">
-            {locale === "pl"
-              ? "Nowa sesja — Polski Advisory. Poprzedni transcript zapisany."
-              : "New session — English Advisory. Previous transcript saved."}
-          </p>
-        </div>
-      )}
+        {/* Locale switch notice */}
+        {messages.length === 0 && !isFirstMount.current && (
+          <div className="text-center py-2 bg-blue-50 border-b border-blue-100 shrink-0">
+            <p className="text-xs text-blue-600">
+              {locale === "pl"
+                ? "Nowa sesja — Polski Advisory. Poprzedni transcript zapisany."
+                : "New session — English Advisory. Previous transcript saved."}
+            </p>
+          </div>
+        )}
 
-      {/* Chat */}
-      <main className="flex-1 overflow-hidden flex justify-center">
-        <ChatWindow
-          messages={messages}
-          onSend={sendMessage}
-          onMessageMeta={handleMessageMeta}
-          onKeyDown={telemetry.onKeyDown}
-          onPaste={telemetry.onPaste}
-          collectSignal={telemetry.collectSignal}
-          isLoading={isLoading}
-          locale={locale}
-          sessionId={sessionId}
-        />
-      </main>
+        {/* Chat */}
+        <main className="flex-1 overflow-hidden flex justify-center">
+          <ChatWindow
+            messages={messages}
+            onSend={sendMessage}
+            onMessageMeta={handleMessageMeta}
+            onKeyDown={telemetry.onKeyDown}
+            onPaste={telemetry.onPaste}
+            collectSignal={telemetry.collectSignal}
+            isLoading={isLoading}
+            locale={locale}
+            sessionId={sessionId}
+          />
+        </main>
+      </div>
+
+      {/* Right sidebar */}
+      <EvalSidebar />
     </div>
   );
 }
